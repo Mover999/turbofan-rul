@@ -2,6 +2,11 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import GroupShuffleSplit 
+from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
+
+
 
 col_names = (
     ['unit_id', 'time_cycles'] + 
@@ -81,6 +86,45 @@ print()
 print(X_train.shape, y_train.shape)
 print()
 print(X_val.shape, y_val.shape)
+
+print()
+print()
+scaler = StandardScaler()
+
+X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
+
+print("Means:")
+print(pd.Series(scaler.mean_, index=X_train.columns))
+
+print()
+
+print("Standard deviations:")
+print(pd.Series(scaler.scale_, index=X_train.columns))
+print()
+print()
+
+X_val_scaled = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
+
+model = LinearRegression()  
+model.fit(X_train_scaled, y_train) 
+predictions = model.predict(X_val_scaled)
+print()
+print("PRECITIONS    ",predictions[:10])
+print()
+rmse = mean_squared_error(y_val, predictions, squared=False)
+print ()
+print("RMSE =  ",rmse)
+print()
+
+print(model.coef_)
+print()
+#zipper=zip(X_train.columns, model.coef_
+
+coef_series = pd.Series(model.coef_, index=X_train.columns)
+
+print(coef_series)
+
+
 
 
 
