@@ -11,26 +11,41 @@ import lightgbm as lgb
 
 import shap
 import matplotlib.pyplot as plt
-from data_utils import load_cmapps_data
 
-df_clean = load_cmapps_data('data/CMaps/train_FD001.txt')
 
-print("unique  ", df_clean['unit_id'].nunique())
+
+
+col_names = (
+    ['unit_id', 'time_cycles'] + 
+    ['op_setting_1', 'op_setting_2', 'op_setting_3'] + 
+    [f'sensor_{i}' for i in range(1, 22)]
+)
+
+
+df = pd.read_csv('data/CMaps/train_FD001.txt', sep='\s+', engine='python', header=None, names=col_names)
+
+print(df.shape)
+print("original")
+print()
+print(df.head())
+print()
+
+print("unique  ", df['unit_id'].nunique())
 print()
 #print(print(df.describe()))
 
-summary=df_clean.describe()
+summary=df.describe()
 
 stdx=summary.loc['std']
 #print(stdx)
-print("shape")
 print()
+df_clean = df.drop(columns=['op_setting_3', 'sensor_1', 'sensor_5',  'sensor_10', 'sensor_16', 'sensor_18', 'sensor_19'])
 print(df_clean.shape)
-print(df_clean.head())
+print (df_clean.head())
 print()
 print("tail")
 print()
-#print(df_clean.tail())
+print(df_clean.tail())
 print()
 max_cycles = df_clean.groupby('unit_id')['time_cycles'].max()
 print("length   ",len(max_cycles))
@@ -47,7 +62,7 @@ print()
 df_clean["RUL"] = np.minimum((df_clean["max_cycles"] - df_clean["time_cycles"]), 125)
 print(df_clean.shape)
 print()
-#print(df_clean.head())
+print(df_clean.head())
 #print(df_clean[df_clean["unit_id"]==1])
 
 gss = GroupShuffleSplit(n_splits=1, train_size=0.8, random_state=42)
@@ -109,12 +124,12 @@ print ()
 print("RMSE =  ",rmse)
 print()
 
-#print(model.coef_)
+print(model.coef_)
 print()
 #zipper=zip(X_train.columns, model.coef_
 
 coef_series = pd.Series(model.coef_, index=X_train.columns)
-print("coef_series")
+
 print(coef_series)
 
 #===============================================
@@ -151,8 +166,7 @@ rmse = mean_squared_error(
     predictions,
     squared=False
 )
-print()
-print()
+
 print("LightGBM RMSE =", rmse)
 
 print()
@@ -170,7 +184,7 @@ shap_values = explainer.shap_values(X_val)
 
 print(type(shap_values))
 print()
-print("SHAP    ", shap_values.shape)
+print(shap_values.shape)
 print()
 shap.summary_plot(
     shap_values,
