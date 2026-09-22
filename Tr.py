@@ -12,6 +12,10 @@ import lightgbm as lgb
 import shap
 import matplotlib.pyplot as plt
 
+from data_utils import load_cmapps_data
+from data_utils import add_features
+from data_utils import window_maker
+
 
 
 
@@ -206,5 +210,11 @@ print()
 expected = list(range(1, 101))
 
 print(test == expected)
+print
+
+gee = [x for x in df_clean.columns if x.startswith('sensor_')]
+
+
+print (gee)
 
 

@@ -5,15 +5,19 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.linear_model import LinearRegression 
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
+
 import joblib
 
 import lightgbm as lgb
 
 import shap
 import matplotlib.pyplot as plt
-from data_utils import load_cmapps_data
+from data_utils import load_cmapps_data, add_features, window_maker
+
+
 
 df_clean = load_cmapps_data('data/CMaps/train_FD001.txt')
+df_clean = add_features(df_clean, window_size=10)
 
 print("unique  ", df_clean['unit_id'].nunique())
 print()
@@ -45,7 +49,9 @@ print(df_clean.head())
 print()
 
 df_clean["RUL"] = np.minimum((df_clean["max_cycles"] - df_clean["time_cycles"]), 125)
-print(df_clean.shape)
+print("df clean shape   ",df_clean.shape)
+
+
 print()
 #print(df_clean.head())
 #print(df_clean[df_clean["unit_id"]==1])
@@ -79,118 +85,31 @@ print(X_train.shape, y_train.shape)
 print()
 print(X_val.shape, y_val.shape)
 
-print()
-print()
+feature_cols = [x for x in X_train.columns if x.startswith('sensor_')]
 scaler = StandardScaler()
-
-X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
-
-print("Means:")
-print(pd.Series(scaler.mean_, index=X_train.columns))
-
-print()
-
-print("Standard deviations:")
-print(pd.Series(scaler.scale_, index=X_train.columns))
-print()
-print()
-
-X_val_scaled = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
-
-model = LinearRegression()  
-model.fit(X_train_scaled, y_train) 
-joblib.dump(model, "linear_model.joblib")
-predictions = model.predict(X_val_scaled)
-print()
-print("PRECITIONS    ",predictions[:10])
-print()
-rmse = mean_squared_error(y_val, predictions, squared=False)
-print ()
-print("RMSE =  ",rmse)
-print()
-
-#print(model.coef_)
-print()
-#zipper=zip(X_train.columns, model.coef_
-
-coef_series = pd.Series(model.coef_, index=X_train.columns)
-print("coef_series")
-print(coef_series)
-
-#===============================================
-
-params = {
-    "objective": "regression",
-    "metric": "rmse",
-    "boosting_type": "gbdt",
-    "learning_rate": 0.05,
-    "num_leaves": 31
-    
-}
-
-train_data = lgb.Dataset(X_train, label=y_train)
+df_clean_train[feature_cols] = scaler.fit_transform(df_clean_train[feature_cols])
+df_clean_val[feature_cols] = scaler.transform(df_clean_val[feature_cols])
 
 
-eval_data = lgb.Dataset(X_val, label=y_val, reference=train_data)
 
 
-lgb_model = lgb.train(
-    params,
-    train_set=train_data,
-    num_boost_round=100,
-    valid_sets=[train_data, eval_data],
-    valid_names=['train', 'valid'],
-)
-joblib.dump(lgb_model, "lgb_model.joblib")
-predictions = lgb_model.predict(X_val)
+X_train_windows, y_train_windows = window_maker(df_clean_train, window_size=30)
 
-from sklearn.metrics import mean_squared_error
+#print("X_train_windows    ", len(X_train_windows))
 
-rmse = mean_squared_error(
-    y_val,
-    predictions,
-    squared=False
-)
-print()
-print()
-print("LightGBM RMSE =", rmse)
+print(X_train_windows.shape)
 
 print()
 print()
-print(lgb_model.feature_importance())
 
-cf_series = pd.Series(lgb_model.feature_importance(), index=X_train.columns)
+X_val_windows, y_val_windows = window_maker(df_clean_val, window_size=30)
 
-print(cf_series)
+print("X_val windows    ", X_val_windows.shape)
 
-
-explainer = shap.TreeExplainer(lgb_model)
-
-shap_values = explainer.shap_values(X_val)
-
-print(type(shap_values))
-print()
-print("SHAP    ", shap_values.shape)
-print()
-shap.summary_plot(
-    shap_values,
-    X_val
-)
+#window_maker(df_clean,window_size=30)
 
 
-print()
-print()
-df2=df_clean.groupby('unit_id').tail(1)
-print(df2.head(1))
-print()
 
-test=    df_clean.groupby('unit_id').tail(1)["unit_id"].tolist()
 
-print(type(test))
-print()
-
-expected = list(range(1, 101))
-
-print(test == expected)
 
 
