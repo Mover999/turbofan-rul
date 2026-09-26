@@ -12,7 +12,7 @@ import lightgbm as lgb
 
 import shap
 import matplotlib.pyplot as plt
-from data_utils import load_cmapps_data, add_features, window_maker
+from data_utils import load_cmapps_data, add_features, window_maker, get_feature_cols
 
 
 
@@ -31,10 +31,7 @@ print("shape")
 print()
 print(df_clean.shape)
 print(df_clean.head())
-print()
-print("tail")
-print()
-#print(df_clean.tail())
+
 print()
 max_cycles = df_clean.groupby('unit_id')['time_cycles'].max()
 print("length   ",len(max_cycles))
@@ -46,11 +43,11 @@ print()
 df_clean['max_cycles'] = df_clean['unit_id'].map(max_cycles)
 print ()
 print(df_clean.head())
-print()
 
 df_clean["RUL"] = np.minimum((df_clean["max_cycles"] - df_clean["time_cycles"]), 125)
-print("df clean shape   ",df_clean.shape)
 
+df_clean = df_clean.drop(columns=['max_cycles'])
+print("df clean shape   ",df_clean.shape)
 
 print()
 #print(df_clean.head())
@@ -65,6 +62,8 @@ df_clean_train = df_clean.iloc[train_idx]
 df_clean_val  = df_clean.iloc[val_idx]
 print("train count")
 print(df_clean_train["unit_id"].nunique())
+print("shape")
+print(df_clean_train.shape)
 print()
 print("val count")
 print(df_clean_val["unit_id"].nunique())
@@ -72,7 +71,7 @@ print()
 overlap = set(df_clean_train['unit_id']) & set(df_clean_val['unit_id'])
 print("Overlap:", overlap)
 print()
-drop_cols = ['unit_id', 'time_cycles', 'max_cycles', 'op_setting_1', 'op_setting_2', 'RUL']
+drop_cols = ['unit_id', 'time_cycles', 'op_setting_1', 'op_setting_2', 'RUL']
 
 X_train = df_clean_train.drop(columns=drop_cols)
 y_train = df_clean_train['RUL']
@@ -85,15 +84,23 @@ print(X_train.shape, y_train.shape)
 print()
 print(X_val.shape, y_val.shape)
 
-feature_cols = [x for x in X_train.columns if x.startswith('sensor_')]
+#feature_cols = [x for x in X_train.columns if x.startswith('sensor_')]
+
+feature_cols=get_feature_cols(df_clean_train)
+
 scaler = StandardScaler()
 df_clean_train[feature_cols] = scaler.fit_transform(df_clean_train[feature_cols])
 df_clean_val[feature_cols] = scaler.transform(df_clean_val[feature_cols])
 
-
-
-
 X_train_windows, y_train_windows = window_maker(df_clean_train, window_size=30)
+
+window_X=X_train_windows
+label_y=y_train_windows
+
+np.savez('dataset.npz', X=window_X, y=label_y)
+
+
+
 
 #print("X_train_windows    ", len(X_train_windows))
 
@@ -103,6 +110,11 @@ print()
 print()
 
 X_val_windows, y_val_windows = window_maker(df_clean_val, window_size=30)
+
+X_val=X_val_windows
+y_val=y_val_windows
+
+np.savez('val.npz', X_val=X_val_windows, y_val=y_val_windows)
 
 print("X_val windows    ", X_val_windows.shape)
 

@@ -5,3 +5,5 @@ data/
 TR.PY
 Tr2.py
 Tr3.py
+test_windows
+*.npz
