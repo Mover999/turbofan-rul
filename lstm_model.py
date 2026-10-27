@@ -30,7 +30,7 @@ model =Sequential([
 
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 
-model.save('model_lstm.keras')
+
 
 history = model.fit(
     loaded_X_train,loaded_y_train, 
@@ -39,3 +39,6 @@ history = model.fit(
     callbacks=[early_stop],
     verbose=1
 )
+
+
+model.save('model_lstm.keras')
