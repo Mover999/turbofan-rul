@@ -79,7 +79,7 @@ y_train = df_clean_train['RUL']
 X_val = df_clean_val.drop(columns=drop_cols)
 y_val = df_clean_val['RUL']
 print()
-
+print("X_train.shape   y_train,shape")
 print(X_train.shape, y_train.shape)
 print()
 print(X_val.shape, y_val.shape)
@@ -99,14 +99,10 @@ label_y=y_train_windows
 
 np.savez('dataset.npz', X=window_X, y=label_y)
 
-
-
-
 #print("X_train_windows    ", len(X_train_windows))
 
 print(X_train_windows.shape)
 
-print()
 print()
 
 X_val_windows, y_val_windows = window_maker(df_clean_val, window_size=30)
