@@ -91,6 +91,7 @@ feature_cols=get_feature_cols(df_clean_train)
 scaler = StandardScaler()
 df_clean_train[feature_cols] = scaler.fit_transform(df_clean_train[feature_cols])
 df_clean_val[feature_cols] = scaler.transform(df_clean_val[feature_cols])
+joblib.dump(scaler, 'scaler.joblib')
 
 X_train_windows, y_train_windows = window_maker(df_clean_train, window_size=30)
 

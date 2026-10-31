@@ -1,3 +1,35 @@
+
+
+
+
+
+
+
+# List of valid numeric dropout rates
+valid_rates = [0, 10, 20, 30, 80]
+
+while True:
+    # Prompt the user for input
+    user_input = input("Please enter dropout rate as a percentage (0, 10, 20, 30, 80): ")                          
+                 
+                 
+    
+    try:
+        # Convert input to integer
+        dropout_rate = int(user_input)
+        
+        # Check if the integer is in our valid list
+        if dropout_rate in valid_rates:
+            print(f"Thanks Dropout rate set to: {dropout_rate}")
+            break  # Exit the loop once a valid rate is assigned
+        else:
+            print("Error: Invalid dropout rate. Please try again.\n")
+            
+    except ValueError:
+        # Handles cases where input is not a number (e.g., letters or symbols)
+        print("Error: Please enter a valid whole number.\n")
+
+# The variable 'dropout_rate' is now saved and ready to use
 import numpy as np
 import pandas as pd
 import tensorflow
@@ -61,9 +93,9 @@ positions = positions.reshape(1, 30, 1)
 positions = np.tile(positions, (loaded_X_val.shape[0], 1, 1))
 X_val_with_pos = np.concatenate([loaded_X_val, positions], axis=-1)
 
-print("Xs")
-print(X_with_pos.shape)
-print(X_val_with_pos.shape)
+#print("Xs")
+#print(X_with_pos.shape)
+#print(X_val_with_pos.shape)
 
 from tensorflow.keras import layers
 scores=[]
@@ -74,7 +106,7 @@ for i in range (10):
     inputs = keras.Input(shape=(30, 46))
     
     x = layers.Dense(64)(inputs)
-    x = layers.Dropout(rate=0.3)(x)
+    x = layers.Dropout(rate=dropout_rate/100)(x)
 
 
 
@@ -122,8 +154,8 @@ for i in range (10):
 
     best = val_hist.index(min(val_hist))    # epoch of the lowest val_loss
     train_at_best = history.history['loss'][best]   
-    print("train_at_best")
-    print(train_at_best)
+    #print("train_at_best")
+    #print(train_at_best)
 
     train_at_best_list.append(train_at_best)
 
@@ -134,7 +166,7 @@ for i in range (10):
     print()
     model.save('model_transformers.keras')
 
-    print("saved  model")
+    #print("saved  model")
     saved_model=keras.models.load_model('model_transformers.keras')
 
 
@@ -159,8 +191,8 @@ for i in range (10):
     testing=test_window_maker(df_scaled,window_size=30)
     print()
 
-    print("testing shape")
-    print(testing.shape)
+    #print("testing shape")
+    #print(testing.shape)
 
     positions = np.arange(30) / 29
     positions = positions.reshape(1, 30, 1)
@@ -171,22 +203,23 @@ for i in range (10):
 
     result = mean_squared_error(RUL, predictions)
 
-    print(math.sqrt(result))
+    #print(math.sqrt(result))
     score=math.sqrt(result)
     scores.append(score)
 
     
 
-print (scores)
+#print (scores)
 
 m=statistics.mean(scores)
 s=statistics.stdev(scores)
 
-print(scores)
+#print(scores)
 print()
-print ("mean   ", m)
-print ("std  ", s)
-print()
+print ("mean RMSE  = ", m)
+print ("stdev RMSE = ", s)
+
+'''print()
 vm=statistics.mean(vlosses)
 vs=statistics.stdev(vlosses)
 print("vmean  ", vm)
@@ -197,7 +230,7 @@ train_at_best_std= statistics.stdev(train_at_best_list)
 print()
 print()
 print("train_at_best_mean " , train_at_best_mean  )
-print("train_at_best_std " , train_at_best_std  )
+print("train_at_best_std " , train_at_best_std  )'''
 
 
 
